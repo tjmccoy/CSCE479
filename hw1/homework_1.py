@@ -16,7 +16,7 @@ def decrypt_aes(ciphertext, key, i_vec):
 
 def encrypt_3des(plaintext, key, i_vec):
     cipher = DES3.new(key, mode=DES3.MODE_CBC, iv=i_vec)
-    padded_text = pad(plaintext, 16)
+    padded_text = pad(plaintext, DES3.block_size)
 
     return cipher.encrypt(padded_text)
 
@@ -25,20 +25,50 @@ def decrypt_3des(ciphertext, key, i_vec):
 
     return unpad(cipher.decrypt(ciphertext), DES3.block_size)
 
-def brute_force_aes(ciphertext, i_vec):
-    n = 1000
+def brute_force_aes(n, ciphertext, i_vec, plaintext):
     start_time = time.perf_counter_ns()
 
     for i in range(n):
         key = i.to_bytes(16, byteorder="big")
         try:
-            _ = decrypt_aes(ciphertext, key, i_vec)
-        except ValueError as e:
+            decryption_result = decrypt_aes(ciphertext, key, i_vec)
+
+            if decryption_result == plaintext:
+                return key
+            else:
+                continue
+
+        except ValueError:
             pass
         
     end_time = time.perf_counter_ns()
+    elapsed_time_ns = end_time - start_time
 
-    print(f'time to check {n} keys: {(end_time - start_time) / 1_000_000_000} seconds')
+    print(f'time to check {n} keys (AES): {elapsed_time_ns / 1_000_000_000} seconds')
+    return elapsed_time_ns
+
+def brute_force_des3(n, ciphertext, i_vec, plaintext):
+    start_time = time.perf_counter_ns()
+
+    for i in range(n):
+        key = i.to_bytes(16, byteorder="big")
+        try:
+            decryption_result = decrypt_3des(ciphertext, key, i_vec)
+
+            if decryption_result == plaintext:
+                return key
+            else:
+                continue
+
+        except ValueError:
+            pass
+
+    end_time = time.perf_counter_ns()
+    elapsed_time_ns = end_time - start_time
+
+    print(f'time to check {n} keys (DES3): {elapsed_time_ns / 1_000_000_000} seconds')
+
+    return elapsed_time_ns
 
 
 def main():
@@ -63,8 +93,14 @@ def main():
     des3_decrypted_data = decrypt_3des(des3_encrypted_data, key, des3_iv)
     print(f'decrypted data: {des3_decrypted_data}\n')
 
-    print('\n-=-=-=-=-=-=-=-=-= BRUTE FORCE AES-128 =-=-=-=-=-=-=-=-=-\n')
-    brute_force_aes(aes_encrypted_data, aes_iv)
+    print('\n-=-=-=-=-=-=-=-=-= BRUTE FORCE =-=-=-=-=-=-=-=-=-\n')
+    num_attempts = 1024
+    ns_per_year = 31_536_000_000_000_000
+    aes_ns = brute_force_aes(num_attempts, aes_encrypted_data, aes_iv, data)
+    des3_ns = brute_force_des3(num_attempts, des3_encrypted_data, des3_iv, data)
+
+    print(f'Result (AES): Time to check {num_attempts} keys={aes_ns / 1_000_000_000} sec. Estimated time to check all 2^128 keys={(aes_ns / ns_per_year) * (2 ** 118)} years.')
+    print(f'Result (DES3): Time to check {num_attempts} keys={des3_ns / 1_000_000_000} sec. Estimated time to check all 2^128 keys={(des3_ns / ns_per_year) * (2 ** 118)} years.')
 
 if __name__ == "__main__":
     main()
