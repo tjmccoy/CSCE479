@@ -26,4 +26,4 @@ the key for both encryption schemes.
 2. `python3 homework_1.py`
 
 ### Example Output
-![](hw1/images/sample-output.png)
+![](~/images/sample-output.png)
