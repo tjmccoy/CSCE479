@@ -1,2 +1,8 @@
-# Ideas for assignment
-huen
+# CSCE 479 - Homework #2
+### Overview
+In this assignment you will perform a conceptual design of a P2P system that acts as a secure storage for files. (You are
+not going to do the actual implementation for HW2.) This is an open-ended problem with lots of potential for fun
+solutions. As such, there are many possible solutions that may meet the outlined requirements.
+
+The goal of the P2P storage infrastructure is for you to be able to store a file on a remote system while preserving the
+confidentiality and integrity of the file.
